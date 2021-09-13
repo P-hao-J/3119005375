@@ -2,6 +2,7 @@ package gosimhash
 
 import (
 	"PapeCheck/utils"
+	"errors"
 	jieba "github.com/yanyiwu/gojieba" //分词的包
 )
 
@@ -31,8 +32,13 @@ func NewSimhasher() *Simhasher {
 	}
 }
 
-func (simhasher *Simhasher) MakeSimHasher(data string, topk int) uint64 {
+func (simhasher *Simhasher) MakeSimHasher(data string, topk int) (uint64, error) {
 	fws := simhasher.extractor.ExtractWithWeight(data, topk)
+	var err error
+	if len(fws) == 0 {
+		err = errors.New("输入文本数据为空,无数据可提取")
+		return 0, err
+	}
 	hws := simhasher.ConvertFeatureToHash(fws)
 	var one uint64 = 1
 	var vector [64]float64
@@ -51,13 +57,14 @@ func (simhasher *Simhasher) MakeSimHasher(data string, topk int) uint64 {
 			res |= one << uint(i)
 		}
 	}
-	return res
+	return res, err
 }
+
 func (simhasher *Simhasher) ConvertFeatureToHash(fws []jieba.WordWeight) []HashWeight {
 	size := len(fws)
 	hws := make([]HashWeight, size, size)
 	for index, fw := range fws {
-		hws[index].hash = simhasher.hasher.Hash64(fw.Word)
+		hws[index].hash, _ = simhasher.hasher.Hash64(fw.Word)
 		hws[index].weight = fw.Weight
 	}
 	return hws
@@ -91,7 +98,11 @@ func GetHammingDis(data1 uint64, data2 uint64) int {
 	return distance
 }
 
-func GetSimilarity(data1 uint64, data2 uint64) float64 {
+func GetSimilarity(data1 uint64, data2 uint64) (float64, error) {
+	if data1 == 0 || data2 == 0 {
+		err := errors.New("存在空串，无法比对")
+		return 0, err
+	}
 	distance := GetHammingDis(data1, data2)
-	return 0.01 * (100 - float64(distance)*100/128)
+	return 0.01 * (100 - float64(distance)*100/128), nil
 }

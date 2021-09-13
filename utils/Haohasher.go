@@ -1,5 +1,7 @@
 package utils
 
+import "errors"
+
 type HaoHasher struct {
 }
 
@@ -7,14 +9,18 @@ func NewHaoHasher() *HaoHasher {
 	return &HaoHasher{}
 }
 
-func (hasher *HaoHasher) Hash64(data string) uint64 {
+func (hasher *HaoHasher) Hash64(data string) (uint64, error) {
 	return computeHash(data)
 }
 
 //MD5的hash方法
-func computeHash(data string) uint64 {
+func computeHash(data string) (uint64, error) {
 	bytes := []byte(data)
-
+	var err error
+	if len(bytes) == 0 {
+		err = errors.New("输入文本数据为空")
+		return 0, err
+	}
 	var a, b, c uint64
 	a, b = 0x9e3779b9, 0x9e3779b9
 	c = 0
@@ -40,7 +46,7 @@ func computeHash(data string) uint64 {
 		}
 	}
 	a, b, c = mix(param[0], param[1], param[2])
-	return c
+	return c, err
 }
 func mix(a, b, c uint64) (uint64, uint64, uint64) {
 	a -= b
