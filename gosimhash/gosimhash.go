@@ -1,23 +1,24 @@
 package gosimhash
 
 import (
-	"PapeCheck/utils"
+	"PapeCheck/hash"
 	"errors"
 	jieba "github.com/yanyiwu/gojieba" //分词的包
 )
 
 type Simhasher struct {
 	extractor *jieba.Jieba
-	hasher    utils.Hasher
+	hasher    hash.Hasher
 }
 
+//哈希值与权重
 type HashWeight struct {
 	hash   uint64
 	weight float64
 }
 
 func NewSimhasher() *Simhasher {
-	newHasher := utils.NewHaoHasher()
+	newHasher := hash.NewHaoHasher()
 	var (
 		dict      string
 		hmm       string
@@ -33,13 +34,18 @@ func NewSimhasher() *Simhasher {
 }
 
 func (simhasher *Simhasher) MakeSimHasher(data string, topk int) (uint64, error) {
+	//提取feature和weight
 	fws := simhasher.extractor.ExtractWithWeight(data, topk)
 	var err error
 	if len(fws) == 0 {
 		err = errors.New("输入文本数据为空,无数据可提取")
 		return 0, err
 	}
+	//将feature通过md5hash转换为uint64哈希值，并将哈希值和权重赋给hws
 	hws := simhasher.ConvertFeatureToHash(fws)
+	/*
+		simhash降维
+	*/
 	var one uint64 = 1
 	var vector [64]float64
 	for _, hw := range hws {
@@ -70,7 +76,7 @@ func (simhasher *Simhasher) ConvertFeatureToHash(fws []jieba.WordWeight) []HashW
 	return hws
 }
 
-//输出文件
+//默认路径
 func getDicPath(dict, hmm, userDict, idf, stopWords *string) {
 	if *dict == "" {
 		*dict = jieba.DICT_PATH
@@ -88,9 +94,11 @@ func getDicPath(dict, hmm, userDict, idf, stopWords *string) {
 		*stopWords = jieba.STOP_WORDS_PATH
 	}
 }
+
 func GetHammingDis(data1 uint64, data2 uint64) int {
 	xor := data1 ^ data2
 	distance := 0
+	//计算二进制上有几个1
 	for xor != 0 {
 		xor &= xor - 1
 		distance++
