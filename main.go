@@ -34,11 +34,11 @@ func main() {
 	defer f3.Close()
 	data1, err := ioutil.ReadAll(f1)
 	if err != nil {
-		fmt.Println("Reading file1 error")
+		fmt.Printf("Reading file1 error:%v\n", err)
 	}
 	data2, err := ioutil.ReadAll(f2)
 	if err != nil {
-		fmt.Println("Reading file2 error")
+		fmt.Printf("Reading file2 error:%v\n", err)
 	}
 
 	simhasher := gosimhash.NewSimhasher()

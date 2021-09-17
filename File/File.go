@@ -13,17 +13,17 @@ func Open() (*os.File, *os.File, *os.File) {
 	f1, err := os.Open(os.Args[1])
 	//f1, err := os.Open("D:/test/orig.txt")
 	if err != nil {
-		fmt.Println("Open file1 error")
+		fmt.Printf("Open file1 error:%v\n", err)
 	}
 	f2, err := os.Open(os.Args[2])
 	//f2, err := os.Open("D:/test/orig_0.8_del.txt")
 	if err != nil {
-		fmt.Println("Open file2 error")
+		fmt.Printf("Open file2 error:%v\n", err)
 	}
 	f3, err := os.OpenFile(os.Args[3], os.O_WRONLY|os.O_CREATE, 0666)
 	//f3, err := os.OpenFile("D:/test/out.txt", os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
-		fmt.Println("Open file3 error")
+		fmt.Printf("Open file3 error:%v\n", err)
 	}
 	return f1, f2, f3
 }
